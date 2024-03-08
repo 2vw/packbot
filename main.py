@@ -11,7 +11,7 @@ with open('bibles/bible1.txt') as f:
 
 import threading
 
-async def send_message(channel, amt, perline, loops):
+async def send_message(channel, amt, perline, loops, mention:str=None):
     input(colorama.Fore.RED + "Press enter to start sending messages\n" + colorama.Fore.WHITE)
     for _ in range(loops):
         async with aiohttp.ClientSession(
@@ -20,15 +20,12 @@ async def send_message(channel, amt, perline, loops):
             for _ in range(amt):
                 url = f"https://discord.com/api/v9/channels/{channel}/messages"
                 json_data = {
-                    "content": '\n'.join(random.sample(bible, perline))}
+                    "content": f"{mention} {'\n'.join(random.sample(bible, perline))}"}
                 task = session.post(url, json=json_data)
                 tasks.append(task)
-            responses = await asyncio.gather(*tasks, return_exceptions=True)
-            for response in responses:
-                if isinstance(response, Exception):
-                    print(colorama.Fore.RED + "Failed to send message")
-                else:
-                    print(colorama.Fore.GREEN + "Successfully sent message")
+            for task in tasks:
+                await asyncio.sleep(int(random.randint(1, 5)/10))  # wait before running the next task
+                await task
                 
         print(colorama.Fore.RED + "waiting 10 seconds inbetween loops to avoid rate limit")
         await asyncio.sleep(10)
@@ -36,7 +33,7 @@ async def send_message(channel, amt, perline, loops):
 
 while True:
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("""
+    print(colorama.Fore.RED + """
 CREATED BY KSEXISTS
 
                                                                                             
@@ -55,5 +52,7 @@ CREATED BY KSEXISTS
     amt = int(input(colorama.Fore.YELLOW + "Enter amount of messages: \n" + colorama.Fore.WHITE))
     perline = int(input(colorama.Fore.YELLOW + "Enter amount of packs per message: \n" + colorama.Fore.WHITE))
     loops = int(input(colorama.Fore.YELLOW + "Enter amount of loops: \n" + colorama.Fore.WHITE))
+    mention = input(colorama.Fore.YELLOW + "Enter user ID to mention (leave blank if none): \n" + colorama.Fore.WHITE)
+
     asyncio.run(send_message(channel, amt, perline, loops))
 
